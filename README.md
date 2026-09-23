@@ -44,6 +44,37 @@ It's just a markdown file. No Figma exports, no JSON schemas, no special tooling
 
 **This repo provides ready-to-use DESIGN.md files** extracted from real websites. 
 
+## 実務での効き目（このフォークの補足メモ）
+
+このコレクションを実際の SaaS 開発に使う前提で検証した結果のメモです。
+
+### 収録ファイルの性質
+
+- 74 ファイル中 66 件が自ら「マーケティングサイトの分析」と明記している。数値も LP 向け（例: セクション間隔 96px、見出し 64px）
+- 業務画面の部品はほぼ載っていない。Checkbox 2/74、Radio 3/74、Pagination 3/74、Tooltip 4/74、データテーブル 8/74
+- 9 ファイルは「hover は書かない」をルールにしている。業務 UI では hover・focus-visible・disabled は必須
+- ブレークポイントの典型値（480 / 768 / 1024 / 1280 / 1440）は MUI の既定値（600 / 900 / 1200 / 1536）と一致しない
+
+### ケース別の効き目
+
+| 状況 | 効き目 | 理由 |
+|---|---|---|
+| 新規の LP・マーケサイト・プロトタイプ | 高い | 想定された用途そのもの |
+| 新規 SaaS をゼロから | 中 | LP 向けの値は捨てる前提 |
+| MUI 導入済み + ハードコード乱立に後付け | ほぼ無い（むしろ悪化） | 中身が生の hex / px なので、エージェントが `sx={{ color: '#...' }}` を増やす。`createTheme()` と真実の源が二重化し、DESIGN.md には lint も型検査も効かない |
+| フルスクラッチ CSS のプロトタイプを別 repo の MUI で再現 | 有効（ただし自作が前提） | repo をまたいで見た目を運ぶ需要が実在する。ただしこのコレクションからはコピーせず、自分のプロトタイプから作る |
+
+### MUI 環境で使うなら、この順番で
+
+1. **測る**: 生の hex / px がどれだけ散らばっているかを grep で数える
+2. **集約する**: プロトタイプ側は `:root` の CSS 変数に、MUI 側は `createTheme()` にまとめる。余白は 8 の倍数に揃え、ブレークポイントはここで決める
+3. **強制する**: `sx` 内の生 hex を ESLint で禁止する。ドキュメントには強制力がない
+4. **最後に DESIGN.md を書く**: `theme.palette.*` を必ず経由すること、プロトタイプのクラスと MUI コンポーネントの対応表（`styleOverrides` か `variants` か自作か）を 100〜200 行程度で書く
+
+repo をまたぐ場合は、DESIGN.md ではなく `tokens.json`（機械可読なトークン）を本体にして両 repo で共有し、DESIGN.md はその使い方の説明書にする。DESIGN.md だけだと、プロトタイプ側の変更に本番側が気づかないままずれていく。
+
+一言でいうと、**DESIGN.md はデザインシステムそのものではなく、既にあるトークン層をエージェントに伝える翻訳レイヤー**。翻訳元（theme やトークン）が無い状態で置いても効かない。
+
 ## Request a DESIGN.md
 
 You can [request a DESIGN.md](https://getdesign.md/request) for specific website, including private requests delivered exclusively to you.
